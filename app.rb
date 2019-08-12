@@ -55,20 +55,17 @@ post '/book' do
   @hair_dresser = params[:hair_dresser]
   @color = params[:color]
 
-  if @user_name == ''
-    @error = 'Введите имя'
-  end
+  error_list = {
+    user_name: 'Введите имя',
+    phone: 'Введите телефон',
+    date_time: 'Не правильная дата'
+  }
 
-  if @phone == ''
-    @error = 'Введите телефон'
-  end
-
-  if @date_time == ''
-    @error = 'Не правильная дата'
-  end
-
-  if @error != ''
-    return erb :book
+  error_list.each do |key, val|
+    if params[key] == ''
+      @error = error_list[key]
+      return erb :book
+    end
   end
 
   f = File.open('./public/users.txt', 'a')
