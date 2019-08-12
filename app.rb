@@ -55,6 +55,22 @@ post '/book' do
   @hair_dresser = params[:hair_dresser]
   @color = params[:color]
 
+  if @user_name == ''
+    @error = 'Введите имя'
+  end
+
+  if @phone == ''
+    @error = 'Введите телефон'
+  end
+
+  if @date_time == ''
+    @error = 'Не правильная дата'
+  end
+
+  if @error != ''
+    return erb :book
+  end
+
   f = File.open('./public/users.txt', 'a')
   f.write("User: #{@user_name}, Phone: #{@phone}, Date and Time: #{@date_time}, HairDresser: #{@hair_dresser} \n")
   f.close
@@ -83,6 +99,7 @@ get '/secure/place' do
 end
 
 get '/about' do
+  @error = 'Something wrong!'
   erb :about
 end
 
