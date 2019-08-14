@@ -61,10 +61,11 @@ post '/book' do
     date_time: 'Не правильная дата'
   }
 
-  @error = error_list.select { |key, _| params[key] == '' }.values.join(', ')
-
-  if @error != ''
-    return erb :book
+  error_list.each do |key, val|
+    if params[key] == ''
+      @error = error_list[key]
+      return erb :book
+    end
   end
 
   f = File.open('./public/users.txt', 'a')
