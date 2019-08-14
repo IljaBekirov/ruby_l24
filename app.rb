@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'sinatra'
 require 'sinatra/reloader'
+require 'pony'
 
 configure do
   enable :sessions
@@ -39,8 +40,8 @@ post '/admin' do
   if @username == 'admin' && @password == 'admin'
     @users_file = File.open('./public/users.txt', 'r')
     erb :user_list
-  # else
-  #   erb :index
+    # else
+    #   erb :index
   end
 end
 
@@ -56,16 +57,15 @@ post '/book' do
   @color = params[:color]
 
   error_list = {
-    user_name: 'Введите имя',
-    phone: 'Введите телефон',
-    date_time: 'Не правильная дата'
+      user_name: 'Введите имя',
+      phone: 'Введите телефон',
+      date_time: 'Не правильная дата'
   }
 
-  error_list.each do |key, val|
-    if params[key] == ''
-      @error = error_list[key]
-      return erb :book
-    end
+  @error = error_list.select { |key, _| params[key] == '' }.values.join(', ')
+
+  if @error != ''
+    return erb :book
   end
 
   f = File.open('./public/users.txt', 'a')
@@ -105,12 +105,41 @@ get '/contacts' do
 end
 
 post '/contacts' do
-  erb :contacts
   @email = params[:email]
+  @text = params[:text]
+
+  error_list = {
+      email: 'Введите email',
+      text: 'Введите сообщение, не менее 10 символов'
+  }
+
+  @error = error_list.select do |key, _|
+    params[key] == ''
+    # params[:text].size < 10
+  end.values.join(', ')
+
+  return erb :contacts if @error != ''
+
+  @error = nil
+
+  Pony.mail(
+      from: 'ruby.school@yandex.ru',
+      to: "#{params[:email]}",
+      subject: 'Some Subject',
+      body: "#{params[:text]}",
+      via: :smtp,
+      via_options: {
+          address: 'smtp.yandex.ru',
+          port: '25' ,
+          user_name: 'ruby.school@yandex.ru',
+          password: 'ruby_school',
+          authentication: :plain
+      }
+  )
 
   f = File.open('./public/contacts.txt', 'a')
   f.write("#{@email}\n")
   f.close
 
-  halt erb "С Вашего электронного адреса: #{@email} отправленно письмо. Спасибо."
+  erb "С Вашего электронного адреса: #{@email} отправленно письмо. Спасибо."
 end
